@@ -41,7 +41,7 @@ class Spring_Pay {
 		//register_activation_hook( $this->file, array( $this, 'activate' ) );
 		//register_deactivation_hook( __FILE__, 'deactivate_spring_pay' );
 
-    add_action('plugins_loaded', array( $this, 'load_gateway'));
+		add_action('plugins_loaded', array( $this, 'load_gateway'));
 		//add_action('parse_request', array( $this, 'processCallback'));
 		add_action('init', array( $this, 'load_plugin_textdomain' ) );
 		add_filter( 'woocommerce_payment_gateways', array( $this, 'add_gateway_class') );
