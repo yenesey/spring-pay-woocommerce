@@ -30,7 +30,46 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 		$this->method_title = 'SpringPay';
 		$this->method_description = 'Оплата через систему SpringPay (Telegram-бот)';
 		//$this->has_fields = true;  // вывести поля прямо на странице оплаты заказа
-		$this->init_form_fields();
+		
+		$this->form_fields = array(
+			'enabled'     => array(
+				'title'   => __('Включить/Выключить', 'spring_pay'),
+				'type'    => 'checkbox',
+				'label'   => $this->method_description,
+				'default' => 'no',
+			),
+			'title'       => array(
+				'title'       => __('Заголовок', 'spring_pay'),
+				'type'        => 'text',
+				'description' => __('Название, которое пользователь видит во время оплаты', 'spring_pay'),
+				'default'     => $this->method_title,
+			),
+			'description' => array(
+				'title'       => __('Описание', 'spring_pay'),
+				'type'        => 'textarea',
+				'description' => __('Описание, которое пользователь видит во время оплаты', 'spring_pay'),
+				'default'     => $this->method_description,
+			),
+			'shop_id' => array(
+				'title'       => 'TelegramID',
+				'type'        => 'text',
+				'description' => __('TelegramID используется как идентификатор магазина в SpringPay', 'spring_pay'),
+				'default'     => '',
+			),
+			'public_key' => array(
+				'title'       => 'Public key',
+				'type'        => 'text',
+				'description' => __('Ключ, полученный при регистрации в SpringPay', 'spring_pay'),
+				'default'     => '',
+			),
+			'api_certificate' => array(
+				'title'       => __( 'Live API Certificate', 'spring_pay' ),
+				'type'        => 'file',
+				'description' => 'Сертификат от SpringPay',
+				'default'     => '',
+			),
+		);
+
 		$this->init_settings();
 		$this->title = $this->get_option( 'title' );
 		$this->shop_id = $this->get_option( 'shop_id' );
@@ -79,47 +118,6 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 			return 'Ваш платеж подтвержден! Ожидается отправка.';
 		} 
 		return $str;
-	}
-
-	public function init_form_fields() {
-		$this->form_fields = array(
-			'enabled'     => array(
-				'title'   => __('Включить/Выключить', 'spring_pay'),
-				'type'    => 'checkbox',
-				'label'   => $this->method_description,
-				'default' => 'no',
-			),
-			'title'       => array(
-				'title'       => __('Заголовок', 'spring_pay'),
-				'type'        => 'text',
-				'description' => __('Название, которое пользователь видит во время оплаты', 'spring_pay'),
-				'default'     => $this->method_title,
-			),
-			'description' => array(
-				'title'       => __('Описание', 'spring_pay'),
-				'type'        => 'textarea',
-				'description' => __('Описание, которое пользователь видит во время оплаты', 'spring_pay'),
-				'default'     => $this->method_description,
-			),
-			'shop_id' => array(
-				'title'       => 'TelegramID',
-				'type'        => 'text',
-				'description' => __('TelegramID используется как идентификатор магазина в SpringPay', 'spring_pay'),
-				'default'     => '',
-			),
-			'public_key' => array(
-				'title'       => 'Public key',
-				'type'        => 'text',
-				'description' => __('Ключ, полученный при регистрации в SpringPay', 'spring_pay'),
-				'default'     => '',
-			),
-			'api_certificate' => array(
-				'title'       => __( 'Live API Certificate', 'spring_pay' ),
-				'type'        => 'file',
-				'description' => 'Сертификат от SpringPay',
-				'default'     => '',
-			),
-		);
 	}
 
 	public function process_payment( $order_id ) {
