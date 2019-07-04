@@ -29,8 +29,8 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 		$this->icon = spring_pay()->plugin_url.'assets/img/spring-pay.png';
 		$this->method_title = 'SpringPay';
 		$this->method_description = 'Оплата через систему SpringPay (Telegram-бот)';
-		//$this->has_fields = true;  // вывести поля прямо на странице оплаты заказа
-		
+		// $this->has_fields = true;  // вывести поля прямо на странице оплаты заказа
+
 		$this->form_fields = array(
 			'enabled'     => array(
 				'title'   => __('Включить/Выключить', 'spring_pay'),
@@ -73,45 +73,22 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 		$this->init_settings();
 		$this->title = $this->get_option( 'title' );
 		$this->shop_id = $this->get_option( 'shop_id' );
-				 
-		// ipn (CALLBACK) from Spring System
-		add_action('woocommerce_api_'. strtolower( get_class($this) ), array( $this, 'ipn_response'));
 
+		// save changes when 'save...' button is pressed
+		// <process_admin_options> is a method of WC_Payment_Gateway, but hook is needed still for engaging
 		add_action('woocommerce_update_options_payment_gateways_'.$this->id, array($this, 'process_admin_options'));
 
-		// add_action('woocommerce_receipt_'.$this->id, array($this, 'receipt_page'));
+		// ipn (CALLBACK) from SpringPay system
+		add_action('woocommerce_api_'. strtolower( get_class($this) ), array( $this, 'ipn_response'));
+
 		add_action('woocommerce_thankyou', array( $this, 'view_order'), 4 );
 		add_action('woocommerce_view_order', array( $this, 'view_order'), 4 );
-		
-		add_action('woocommerce_email_after_order_table', array( $this, 'hook_email_after_order_table'), 10, 4 );
+		add_action('woocommerce_email_after_order_table', array( $this, 'email_after_order_table'), 10, 4 );
 
-		// add_filter( 'the_title',  array( $this, 'woo_title_order_received'), 10, 2 );
-		add_filter('woocommerce_thankyou_order_received_text', array( $this, 'woo_change_order_received_text'), 10, 2 );
-
-		// add_action( 'template_redirect', array( $this, 'wc_custom_redirect_after_purchase') ); 
+		add_filter('woocommerce_thankyou_order_received_text', array( $this, 'order_received_text'), 10, 2 );
 	}
 
-	/*
-	function wc_custom_redirect_after_purchase() {
-		global $wp;
-		wc_get_logger()->info( 'wc_custom_redirect_after_purchase', array( 'source' => $this->id ) );
-		
-		if ( is_checkout() && ! empty( $wp->query_vars['order-received'] ) ) {
-			wp_redirect( spring_pay()->plugin_url.'templates/thankyou/' );
-			exit;
-		}
-	}
-
-	function woo_title_order_received( $title, $id ) {
-		if ( function_exists( 'is_order_received_page' ) && 
-			 is_order_received_page() && get_the_ID() === $id ) {
-			$title = "Thank you for your order! :)";
-		}
-		return $title;
-	}
-	*/
-
-	function woo_change_order_received_text( $str, $order ) {
+	function order_received_text( $str, $order ) {
 		if ($order->status == 'on-hold') {
 			return $str . ' Ожидается оплата. ';
 		} elseif ($order->status == 'processing') {
@@ -163,16 +140,6 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 		return $keys;
 	}
 
-	/*
-	public function receipt_page($order_id) {
-		global $woocommerce;
-		// $apiClient = $this->getApiClient();
-		$order = new WC_Order($order_id);
-		// $paymentId = $order->get_transaction_id();
-
-		wc_get_logger()->info( 'receipt page fired!', array( 'source' => $this->id ) );
-	}
-	*/
 	public function pay_link($order) {
 		return 'https://t.me/SpringPayBot?start='.strval($this->shop_id).'_'.number_format($order->get_total(), 2, '', '').'_'.strval($order->id);
 	}
@@ -221,7 +188,7 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 		echo $template;
 	}
 
-	function hook_email_after_order_table( $order, $sent_to_admin, $plain_text, $email ) {
+	function email_after_order_table( $order, $sent_to_admin, $plain_text, $email ) {
 		/*
 		if ( $email->id == 'customer_processing_order' ) 
 		if ( $email->id == 'cancelled_order' ) {}
@@ -258,10 +225,9 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 			';
 	}
 
-	/**
-	 * EXAMPLE: Do some additonal validation before saving options via the API.
-	 */
 	/*
+	Uncomment and adapt, when file uploads on options page is needeed
+
 	public function process_admin_options() {
 		// If a certificate has been uploaded, read the contents and save that string instead.
 		if ( array_key_exists( 'woocommerce_ppec_paypal_api_certificate', $_FILES )
@@ -278,5 +244,6 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 		parent::process_admin_options();
 	}
 	*/
+
 
 }
