@@ -13,8 +13,8 @@
  * Version:           1.0.0
  * Author:            Denis Bogachev
  * Author URI:        http://bogachevo.ru
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * License:           GPL-3.0
+ * License URI:       http://www.gnu.org/licenses/gpl-3.0.txt
  * Text Domain:       spring-pay
  * Domain Path:       /languages
  */
