@@ -44,7 +44,7 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 		add_action('woocommerce_thankyou', array( $this, 'view_order'), 4 );
 		add_action('woocommerce_view_order', array( $this, 'view_order'), 4 );
 		
-		add_action('woocommerce_email_after_order_table', array( $this, 'hook_email'), 10, 4 );
+		add_action('woocommerce_email_after_order_table', array( $this, 'hook_email_after_order_table'), 10, 4 );
 
 		// add_filter( 'the_title',  array( $this, 'woo_title_order_received'), 10, 2 );
 		add_filter('woocommerce_thankyou_order_received_text', array( $this, 'woo_change_order_received_text'), 10, 2 );
@@ -157,7 +157,7 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 		wc_get_logger()->info( 'ipn_response:'.$order_id, array( 'source' => $this->id ) );
 
 		echo 'OK!';
-		die(); // temporary: prevent -1
+		die(); // prevent default response '-1'
 	}
 
 	function order_meta_keys( $keys ) {
@@ -223,7 +223,7 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 		echo $template;
 	}
 
-	function hook_email( $order, $sent_to_admin, $plain_text, $email ) {
+	function hook_email_after_order_table( $order, $sent_to_admin, $plain_text, $email ) {
 		/*
 		if ( $email->id == 'customer_processing_order' ) 
 		if ( $email->id == 'cancelled_order' ) {}
@@ -244,7 +244,10 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 				<tbody>
 					<tr>
 						<td> 
-							<a href="'.$this->pay_link($order).'" style="background-color:#96588a;color:#ffffff;display:table-cell;font-size:14px;font-weight:bold;padding-bottom:12px;padding-left:24px;padding-right:24px;padding-top:12px;text-align:center;text-decoration-line:none;width:100%">Оплатить в SpringPay</a>
+							<a href="'.$this->pay_link($order).'"style="background-image:url('.$this->icon.'); background-repeat: no-repeat; background-color:#eeeeee; color:#000; display:table-cell;	font-size:14px;	font-weight:bold; 
+							padding-left:48px; padding-right:24px; padding-bottom:14px; padding-top:14px;
+							text-align:center; text-decoration-line:none; width:100%"
+							>Оплатить в SpringPay</a>
 						</td>
 					</tr>
 					<tr>
