@@ -10,6 +10,11 @@ if (version_compare(WOOCOMMERCE_VERSION, "3.0", "<")) {
 
 include_once 'lib/phpqrcode/qrlib.php';
 
+
+//set_include_path(get_include_path() . PATH_SEPARATOR . 'includes/lib/phpseclib');
+//include_once 'Crypt/RSA.php';
+
+
 class Spring_Pay_Gateway extends WC_Payment_Gateway {
 	public $qr_image_dir;
 	public $qr_image_url;
@@ -23,7 +28,8 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 			mkdir($this->qr_image_dir, 0777, true);
 		}
 		$this->QRcode = new QRcode();
-
+		// $this->$RSA = new Crypt_RSA();
+			
 		// setup wc gateway class required fields:
 		$this->id = spring_pay()->plugin_name;
 		$this->icon = spring_pay()->plugin_url.'assets/img/spring-pay.png';
@@ -57,15 +63,9 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 				'default'     => '',
 			),
 			'public_key' => array(
-				'title'       => 'Public key',
-				'type'        => 'text',
-				'description' => __('Ключ, полученный при регистрации в SpringPay', 'spring_pay'),
-				'default'     => '',
-			),
-			'api_certificate' => array(
-				'title'       => __( 'Live API Certificate', 'spring_pay' ),
-				'type'        => 'file',
-				'description' => 'Сертификат от SpringPay',
+				'title'       => __( 'SpringPay Key', 'spring_pay' ),
+				'type'        => 'textarea',
+				'description' => 'Публичный ключ SpringPay',
 				'default'     => '',
 			),
 		);
@@ -74,6 +74,9 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 		$this->title = $this->get_option( 'title' );
 		$this->shop_id = $this->get_option( 'shop_id' );
 
+		// NOTE: key in X.509 format (not PKCS#1) (conversion: openssl rsa -RSAPublicKey_in -in pubkey.pem -pubout)
+		$this->pub_key = openssl_get_publickey($this->get_option( 'public_key' ));
+		
 		// save changes when 'save...' button is pressed
 		// <process_admin_options> is a method of WC_Payment_Gateway, but hook is needed still for engaging
 		add_action('woocommerce_update_options_payment_gateways_'.$this->id, array($this, 'process_admin_options'));
@@ -125,13 +128,29 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 
 	public function ipn_response() {
 		// global $woocommerce;
+		#$req_dump = print_r($_REQUEST, TRUE);
 		$order_id = $_GET['order_id'];
+		$client_id = $_GET['client_id'];
+		$amount = $_GET['amount'];
+
 		$order = new WC_Order( $order_id );
-		$order->payment_complete();
+		$message = $client_id . (int)($amount * 100) . $order_id;
+		//wc_get_logger()->info( 'ipn_response:' .  $this->pub_key , array( 'source' => $this->id ) );
 
-		wc_get_logger()->info( 'ipn_response:'.$order_id, array( 'source' => $this->id ) );
+		$sign = $_GET['sign'];
+		// $sign = $_SERVER['HTTP_SIGN'];
+		$sign = base64_decode($sign);
 
-		echo 'OK!';
+		$chk = openssl_verify($message, $sign, $this->pub_key, OPENSSL_ALGO_SHA256 );
+		if ($chk == 1) {
+			echo 'OKAY!';
+			$order->payment_complete();
+		} elseif ($chk == 0) {
+			echo 'NOT OKAY!';
+		} else {
+			echo 'ERROR!';
+		}
+		
 		die(); // prevent default response '-1'
 	}
 
