@@ -140,7 +140,7 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 			echo 'OKAY!';
 			$order->payment_complete();
 		} elseif ($chk == 0) {
-			wc_get_logger()->info( 'ipn_response: ' . 'signature check failed!'  , array( 'source' => $this->id ) );
+			wc_get_logger()->warning( 'ipn_response from ' . $_SERVER['REMOTE_ADDR'] . ' - signature check failed!'  , array( 'source' => $this->id ) );
 			echo 'NOT OKAY!';
 		} else {
 			echo 'ERROR!';
