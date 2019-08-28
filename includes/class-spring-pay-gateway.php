@@ -23,14 +23,13 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 			mkdir($this->qr_image_dir, 0777, true);
 		}
 		$this->QRcode = new QRcode();
-		// $this->$RSA = new Crypt_RSA();
 			
 		// setup wc gateway class required fields:
 		$this->id = spring_pay()->plugin_name;
 		$this->icon = spring_pay()->plugin_url.'assets/img/spring-pay.png';
 		$this->method_title = 'SpringPay';
 		$this->method_description = 'Оплата через систему SpringPay (Telegram-бот)';
-		// $this->has_fields = true;  // вывести поля прямо на странице оплаты заказа
+		// $this->has_fields = true;  // -- show fields on paymant page
 
 		$this->form_fields = array(
 			'enabled'     => array(
@@ -123,14 +122,13 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 
 	public function ipn_response() {
 		// global $woocommerce;
-		#$req_dump = print_r($_REQUEST, TRUE);
+		// $req_dump = print_r($_REQUEST, TRUE);
 		$order_id = $_GET['order_id'];
 		$client_id = $_GET['client_id'];
 		$amount = $_GET['amount'];
 
 		$order = new WC_Order( $order_id );
 		$message = $client_id . (int)($amount * 100) . $order_id;
-		//wc_get_logger()->info( 'ipn_response:' .  $this->pub_key , array( 'source' => $this->id ) );
 
 		$sign = $_GET['sign'];
 		// $sign = $_SERVER['HTTP_SIGN'];
@@ -142,6 +140,7 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 			echo 'OKAY!';
 			$order->payment_complete();
 		} elseif ($chk == 0) {
+			wc_get_logger()->info( 'ipn_response: ' . 'signature check failed!'  , array( 'source' => $this->id ) );
 			echo 'NOT OKAY!';
 		} else {
 			echo 'ERROR!';
