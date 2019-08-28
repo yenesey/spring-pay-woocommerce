@@ -10,11 +10,6 @@ if (version_compare(WOOCOMMERCE_VERSION, "3.0", "<")) {
 
 include_once 'lib/phpqrcode/qrlib.php';
 
-
-//set_include_path(get_include_path() . PATH_SEPARATOR . 'includes/lib/phpseclib');
-//include_once 'Crypt/RSA.php';
-
-
 class Spring_Pay_Gateway extends WC_Payment_Gateway {
 	public $qr_image_dir;
 	public $qr_image_url;
@@ -139,7 +134,8 @@ class Spring_Pay_Gateway extends WC_Payment_Gateway {
 
 		$sign = $_GET['sign'];
 		// $sign = $_SERVER['HTTP_SIGN'];
-		$sign = base64_decode($sign);
+		//$sign = base64_decode($sign);
+		$sign = hex2bin ($sign);
 
 		$chk = openssl_verify($message, $sign, $this->pub_key, OPENSSL_ALGO_SHA256 );
 		if ($chk == 1) {
